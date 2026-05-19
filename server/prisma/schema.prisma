@@ -1,0 +1,73 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String         @id @default(cuid())
+  email         String         @unique
+  username      String         @unique
+  passwordHash  String
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  sessions      Session[]
+  refreshTokens RefreshToken[]
+}
+
+model RefreshToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
+
+model Session {
+  id           String       @id @default(cuid())
+  userId       String
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  date         DateTime
+  location     String
+  locationType LocationType
+  notes        String?
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  routes       Route[]
+}
+
+model Route {
+  id          String      @id @default(cuid())
+  sessionId   String
+  session     Session     @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  name        String?
+  grade       String
+  gradeSystem GradeSystem
+  style       ClimbStyle
+  attempts    Int         @default(1)
+  completed   Boolean     @default(false)
+  notes       String?
+  createdAt   DateTime    @default(now())
+}
+
+enum LocationType {
+  GYM
+  OUTDOOR
+}
+
+enum GradeSystem {
+  YOSEMITE
+  V_SCALE
+  FRENCH
+}
+
+enum ClimbStyle {
+  SPORT
+  TRAD
+  BOULDER
+  TOP_ROPE
+}
